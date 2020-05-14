@@ -210,6 +210,9 @@ public class Share {
         cipher.init(Cipher.ENCRYPT_MODE, secretKey);
         byte[] byteCipherText = cipher.doFinal(bArray);
 
+
+        //String converted = new String(bArray);
+        //System.out.println(converted);
         //System.out.println(byteCipherText);
         //System.out.println(bArray);
 
@@ -230,20 +233,17 @@ public class Share {
 
         //initialize public/private key arrays:
         //eventually we scrape the blockchain for these public keys so that each miner is able
-        //to use their own private key to decrypt. Need to figure out feasibility of that solution
-        //but it will be moving this code around, no new design.
+        //to use their own private key to decrypt.
 
         PrivateKey[] privateKeys = new PrivateKey[share.n];
         PublicKey[] publicKeys = new PublicKey[share.n];
 
         for (int i=0; i<share.n; i++) {
-            ECGenParameterSpec ecSpec = new ECGenParameterSpec("secp256k1");
-            KeyPairGenerator g = KeyPairGenerator.getInstance("EC");
-            g.initialize(ecSpec, new SecureRandom());
+            KeyPairGenerator g = KeyPairGenerator.getInstance("RSA");
+            g.initialize(2048, new SecureRandom());
             KeyPair keypair = g.generateKeyPair();
             PublicKey publicKey = keypair.getPublic();
             PrivateKey privateKey = keypair.getPrivate();
-
 
             //The following code populates arrays of public/private keys simulating the miners
             publicKeys[i] = publicKey;
@@ -254,9 +254,29 @@ public class Share {
         //System.out.println(privateKeys);
 
         //TO DO:
-        //Now encrypt each of the shares using the miner public keys, print the map for storage in smart contract.
+        //Now encrypt each of the shares using the miner public keys, and replace the corresponding
+        //mapping in the parts map.
 
+        for (int i=0; i<share.n; i++) {
+            byte[] value = parts.get(i);
+            Cipher encryptCipher = Cipher.getInstance("RSA");
+            encryptCipher.init(Cipher.ENCRYPT_MODE, publicKeys[i]);
+            byte[] cipherTexti = encryptCipher.doFinal(value);
+            parts.replace(i, cipherTexti);
+        }
 
+        //AFTER DATA RETRIEVAL:
+        //Require an added check here for which k public keys we get back in reconstruction,
+        //but this suffices for testing purposes
+
+        for (int i=0; i<share.n; i++) {
+            Cipher decrypted = Cipher.getInstance("RSA");
+            decrypted.init(Cipher.DECRYPT_MODE, privateKeys[i]);
+            byte[] val = parts.get(i);
+            byte[] newValue = decrypted.doFinal(val);
+            //In final implementation it may make more sense to create a new mapping of size k (n/2)
+            parts.replace(i,newValue);
+        }
 
         //Key Recovery:
         //Convert back to SecretKey type
@@ -272,7 +292,7 @@ public class Share {
         dcipher.init(Cipher.DECRYPT_MODE, secretKey1);
         byte[] bytePlainText = dcipher.doFinal(byteCipherText);
         String out = new String(bytePlainText);
-        //System.out.println(out);
+        System.out.println(out);
 
         System.out.println("Hello");
 
