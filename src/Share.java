@@ -195,6 +195,10 @@ public class Share {
         fs.read(bArray);
         fs.close();
 
+        //String converted = new String(bArray);
+        //System.out.println(converted);
+        //System.out.println(bArray);
+
         //Fix AES Encryption Length: (function above the main)
         fixKeyLength();
 
@@ -210,8 +214,6 @@ public class Share {
         cipher.init(Cipher.ENCRYPT_MODE, secretKey);
         byte[] byteCipherText = cipher.doFinal(bArray);
 
-
-        //String converted = new String(bArray);
         //System.out.println(converted);
         //System.out.println(byteCipherText);
         //System.out.println(bArray);
@@ -226,6 +228,11 @@ public class Share {
 
         //Make a copy to test the public key encryption:
         Map<Integer,byte[]> parts = parts1;
+
+        for (int i=0; i<share.n; i++) {
+            System.out.println(i);
+            System.out.println(parts.get(i+1));
+        }
 
 
         // Create public keys and perform miner public key encryption of shares for storage on Ethereum
@@ -257,25 +264,31 @@ public class Share {
         //Now encrypt each of the shares using the miner public keys, and replace the corresponding
         //mapping in the parts map.
 
+        //System.out.println(parts.size());
+
         for (int i=0; i<share.n; i++) {
-            byte[] value = parts.get(i);
-            Cipher encryptCipher = Cipher.getInstance("RSA");
+            byte[] value = parts.get(i+1);
+            //System.out.println(value);
+            Cipher encryptCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
             encryptCipher.init(Cipher.ENCRYPT_MODE, publicKeys[i]);
             byte[] cipherTexti = encryptCipher.doFinal(value);
-            parts.replace(i, cipherTexti);
+            //System.out.println(cipherTexti);
+            parts.replace(i+1, cipherTexti);
         }
 
         //AFTER DATA RETRIEVAL:
         //Require an added check here for which k public keys we get back in reconstruction,
         //but this suffices for testing purposes
 
-        for (int i=0; i<share.n; i++) {
-            Cipher decrypted = Cipher.getInstance("RSA");
-            decrypted.init(Cipher.DECRYPT_MODE, privateKeys[i]);
-            byte[] val = parts.get(i);
+        for (int j=0; j<share.n; j++) {
+            Cipher decrypted = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+            decrypted.init(Cipher.DECRYPT_MODE, privateKeys[j]);
+            byte[] val = parts.get(j+1);
+            //System.out.println(val);
             byte[] newValue = decrypted.doFinal(val);
+            //System.out.println(newValue);
             //In final implementation it may make more sense to create a new mapping of size k (n/2)
-            parts.replace(i,newValue);
+            parts.replace(j+1,newValue);
         }
 
         //Key Recovery:
@@ -288,11 +301,14 @@ public class Share {
 
         //File Decryption Process:
 
+        //System.out.println(secretKey);
+        //System.out.println(secretKey1);
+
         Cipher dcipher = Cipher.getInstance("AES");
         dcipher.init(Cipher.DECRYPT_MODE, secretKey1);
         byte[] bytePlainText = dcipher.doFinal(byteCipherText);
-        String out = new String(bytePlainText);
-        System.out.println(out);
+        //String out = new String(bytePlainText);
+        //System.out.println(out);
 
         System.out.println("Hello");
 
