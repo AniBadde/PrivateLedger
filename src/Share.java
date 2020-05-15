@@ -214,9 +214,9 @@ public class Share {
         cipher.init(Cipher.ENCRYPT_MODE, secretKey);
         byte[] byteCipherText = cipher.doFinal(bArray);
 
-        //System.out.println(converted);
-        //System.out.println(byteCipherText);
-        //System.out.println(bArray);
+        System.out.println(bArray);
+        System.out.println(byteCipherText);
+
 
 
         //Secret Sharing Implementation:
@@ -229,10 +229,12 @@ public class Share {
         //Make a copy to test the public key encryption:
         Map<Integer,byte[]> parts = parts1;
 
-        for (int i=0; i<share.n; i++) {
+        /***
+         * for (int i=0; i<share.n; i++) {
             System.out.println(i);
             System.out.println(parts.get(i+1));
         }
+         ***/
 
 
         // Create public keys and perform miner public key encryption of shares for storage on Ethereum
@@ -254,10 +256,11 @@ public class Share {
 
             //The following code populates arrays of public/private keys simulating the miners
             publicKeys[i] = publicKey;
+            //System.out.println(publicKey);
             privateKeys[i] = privateKey;
         }
 
-        //System.out.println(publicKeys);
+
         //System.out.println(privateKeys);
 
         //TO DO:
@@ -284,8 +287,10 @@ public class Share {
             Cipher decrypted = Cipher.getInstance("RSA/ECB/PKCS1Padding");
             decrypted.init(Cipher.DECRYPT_MODE, privateKeys[j]);
             byte[] val = parts.get(j+1);
+            //System.out.println("Encrypted share:");
             //System.out.println(val);
             byte[] newValue = decrypted.doFinal(val);
+            //System.out.println("Decrypted Share");
             //System.out.println(newValue);
             //In final implementation it may make more sense to create a new mapping of size k (n/2)
             parts.replace(j+1,newValue);
@@ -307,8 +312,12 @@ public class Share {
         Cipher dcipher = Cipher.getInstance("AES");
         dcipher.init(Cipher.DECRYPT_MODE, secretKey1);
         byte[] bytePlainText = dcipher.doFinal(byteCipherText);
-        //String out = new String(bytePlainText);
+        String out = new String(bytePlainText);
         //System.out.println(out);
+        //System.out.println(byteCipherText);
+
+        //Testing printing the byte[] version of CSV file
+        //System.out.println(bArray);
 
         System.out.println("Hello");
 
